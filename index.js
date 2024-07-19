@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import { ValueNoise } from "value-noise-js";
 
-const noise = new ValueNoise();
-const noise2 = new ValueNoise();
-const noise3 = new ValueNoise();
+const humidNoise = new ValueNoise();
+const landNoise = new ValueNoise();
+const tempFalloffNoise = new ValueNoise();
 
 // Height of the map
 // Number of arrays in the map
@@ -16,11 +16,11 @@ const cols = rows * 2;
 // ↗ Zoom out; ↘ Zoom in
 const zoom = 0.15;
 // ↗ Bigger; ↘ Smaller
-const islandSize = 0.1;
+const islandSize = 0.09;
 
 // ↗ Cooling; ↘ Warming
-const warming = 1.6;
-const falloff = 0.08;
+const warming = 1.5;
+const falloff = 0.2;
 
 // ASCII Art
 const tropic = chalk.bgBlue.blueBright("~");
@@ -28,10 +28,10 @@ const tundra = chalk.bgGreen.white(",");
 const taiga = chalk.bgGreen.white("↑");
 const ice = chalk.bgBlue("#");
 const grass = chalk.bgGreen.yellow(",");
-const forest = chalk.bgGreen.red("♣");
+const forest = chalk.bgGreen.red("↑");
 const ocean = chalk.bgBlue(" ");
 const desert = chalk.bgYellow.yellow("-");
-const jungle = chalk.bgGreen.red("§");
+const jungle = chalk.bgGreen.red("♣");
 const mtn = chalk.bgGray("▲");
 const beach = chalk.bgYellow.green("↑");
 const deepOcean = chalk.bgBlue.black("~");
@@ -60,7 +60,7 @@ class HRow {
 }
 
 function perlinHumidity(x, y) {
-    let h = Math.floor( noise.evalXY( x * zoom , y * zoom ) * 100 );
+    let h = Math.floor( humidNoise.evalXY( x * zoom , y * zoom ) * 100 );
     return h;
 }
 
@@ -109,7 +109,7 @@ function temperature(x) {
 
 
 function tempNoise(x, y) {
-    let tN = Math.floor( noise3.evalXY( x * falloff , y * falloff ) * 30 );
+    let tN = Math.floor( tempFalloffNoise.evalXY( x * falloff , y * falloff ) * 8 );
     return tN;
 }
 
@@ -142,7 +142,7 @@ class LRow {
 }
 
 function perlinLand(x, y) {
-    let l = Math.floor( noise2.evalXY( x * islandSize , y * islandSize) * 100 );
+    let l = Math.floor( landNoise.evalXY( x * islandSize , y * islandSize) * 100 );
     return l;
 }
 
@@ -168,10 +168,10 @@ class BRow {
     }
     fill(row) {
         for (let i = 0; i < cols; i++) {
-            if ( lMap[row].row[i] >= 95 ) {
+            if ( lMap[row].row[i] >= 98 ) {
                     this.row.push(mtn);
 
-            } else if ( lMap[row].row[i] >= 50 ) {          // HIGH LAND
+            } else if ( lMap[row].row[i] >= 60 ) {          // HIGH LAND
                 if ( hMap[row].row[i] >= 66 ) {             // HIGH HUMIDITY
                     if ( tMap[row].row[i] >= 66 * warming ) {         // Tropics
                         this.row.push(tropic);
@@ -209,7 +209,7 @@ class BRow {
                     this.row.push("?");
                 }
 
-            } else if (lMap[row].row[i] >= 49) {
+            } else if (lMap[row].row[i] >= 59) {
                 this.row.push(beach);
 
             } else if (lMap[row].row[i] >= 33) {
